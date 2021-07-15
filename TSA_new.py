@@ -65,10 +65,10 @@ Y_validate = F.one_hot(Y_validate.to(torch.int64)-1, 4)
 
 X_test = torch.Tensor(X_test)
 Y_test = torch.Tensor(Y_test)
-Y_test = F.one_hot(Y_test.to(torch.int64)-1, 4)
+# Y_test = F.one_hot(Y_test.to(torch.int64)-1, 4)
 print("xtrian shape:",X_train.shape)
+
 X_train = X_train.reshape(X_train.shape[0], kernels, chans, samples)
-print("xtrian shape:",X_train.shape)
 X_validate = X_validate.reshape(X_validate.shape[0], kernels, chans, samples)
 X_test = X_test.reshape(X_test.shape[0], kernels, chans, samples)
 
@@ -82,8 +82,8 @@ trn_loader = data_utils.DataLoader(trn, batch_size=16, shuffle=True)
 val = data_utils.TensorDataset(X_validate, Y_validate)
 val_loader = data_utils.DataLoader(val, batch_size=16, shuffle=False)
 
-test = data_utils.TensorDataset(X_test, Y_test)
-test_loader = data_utils.DataLoader(test, batch_size=16, shuffle=True)
+# test = data_utils.TensorDataset(X_test, Y_test)
+# test_loader = data_utils.DataLoader(test, batch_size=16, shuffle=True)
 
 #################### model training ####################
 criterion = nn.CrossEntropyLoss
@@ -105,10 +105,11 @@ for epoch in range(num_epochs): # epoch
     avg_loss2 = 0
     acc = 0
     acc2 = 0
+    
     for i,data in enumerate(trn_loader,0): # iteration
         x,y = data
         optimizer.zero_grad()
-        pred = F.softmax(testmodel(x), dim=1)
+        pred = F.softmax(model(x), dim=1)
         #accuracy
         prediction = torch.max(pred,1)[1]
         y = torch.max(y,1)[1]
@@ -123,19 +124,18 @@ for epoch in range(num_epochs): # epoch
         
     state={"state_dict" : model.state_dict(), "optimizer" :  optimizer.state_dict()}
     torch.save(model.state_dict(),savepath)
-    newmodel = model
-    newmodel.load_state_dict(torch.load('C:/Users/PC/Desktop/SSSEP/savepath/testmodel.pth'))
+    model.load_state_dict(torch.load('C:/Users/PC/Desktop/SSSEP/savepath/testmodel.pth'))
     
     model.eval()
     with torch.no_grad():
         for i,data in enumerate(val_loader,0):
             val_x, val_y = data
-            output = F.softmax(newmodel(val_x), dim=1)
-            output2 = torch.max(output,1)[1]
+            pred2 = F.softmax(model(val_x), dim=1)
+            prediction2 = torch.max(pred2,1)[1]
             val_y = torch.max(val_y,1)[1]
-            loss2 = criterion()(output, val_y)
+            loss2 = criterion()(pred2, val_y)
             avg_loss2 += loss2 / len(val_loader)
-            acc2 += (output2 == val_y).sum()
+            acc2 += (prediction2 == val_y).sum()
             accuracy2 = acc2 / len(X_validate)
             
     print('[Epoch:{}] trn_loss={:.5f}, trn_acc={:.5f}, val_loss={:.5f}, val_acc{:.5f}'.format(epoch+1,avg_loss,accuracy,avg_loss2,accuracy2))    
@@ -154,3 +154,10 @@ plt.xlabel('epoch')
 plt.title('Training & Validation')
 plt.legend(['loss','accuracy','val_loss','val_acc'])
 plt.show()
+
+prob = F.softmax(model(X_test), dim=1)
+probs = torch.max(prob,1)[1]
+test_acc = 0
+test_acc += (probs == Y_test).sum()
+test_acc2 = test_acc / len(Y_test)
+print("test accuracy={}".format(test_acc2))
