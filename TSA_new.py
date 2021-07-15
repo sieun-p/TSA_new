@@ -155,9 +155,11 @@ plt.title('Training & Validation')
 plt.legend(['loss','accuracy','val_loss','val_acc'])
 plt.show()
 
-prob = F.softmax(model(X_test), dim=1)
-probs = torch.max(prob,1)[1]
-test_acc = 0
-test_acc += (probs == Y_test).sum()
-test_acc2 = test_acc / len(Y_test)
-print("test accuracy={}".format(test_acc2))
+model.eval()
+with torch.no_grad():
+  prob = F.softmax(model(X_test), dim=1)
+  probs = torch.max(prob,1)[1]
+  test_acc = 0
+  test_acc += (probs == Y_test).sum()
+  test_acc2 = test_acc / len(Y_test)
+  print("test accuracy={}".format(test_acc2))
