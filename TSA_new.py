@@ -124,9 +124,9 @@ for epoch in range(num_epochs): # epoch
     state={"state_dict" : model.state_dict(), "optimizer" :  optimizer.state_dict()}
     torch.save(model.state_dict(),savepath)
     newmodel = model
-    
     newmodel.load_state_dict(torch.load('C:/Users/PC/Desktop/SSSEP/savepath/testmodel.pth'))
     
+    model.eval()
     with torch.no_grad():
         for i,data in enumerate(val_loader,0):
             val_x, val_y = data
@@ -138,7 +138,7 @@ for epoch in range(num_epochs): # epoch
             acc2 += (output2 == val_y).sum()
             accuracy2 = acc2 / len(X_validate)
             
-    print('[Epoch:{}] loss={:.5f}, acc={:.5f}, val_loss={:.5f}, val_acc{:.5f}'.format(epoch+1,avg_loss,accuracy,avg_loss2,accuracy2))    
+    print('[Epoch:{}] trn_loss={:.5f}, trn_acc={:.5f}, val_loss={:.5f}, val_acc{:.5f}'.format(epoch+1,avg_loss,accuracy,avg_loss2,accuracy2))    
     trn_loss.append(avg_loss.item())
     trn_acc.append(accuracy.item())
     val_loss.append(avg_loss2.item())
